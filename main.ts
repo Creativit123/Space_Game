@@ -1176,9 +1176,13 @@ forever(function () {
         } else {
             projectile.setImage(assets.image`Laser things leftright`)
         }
-        projectile.setFlag(SpriteFlag.Ghost, true)
-        pause(200)
-        projectile.setFlag(SpriteFlag.Ghost, false)
+        if (Game_Mode == 2) {
+            projectile.setFlag(SpriteFlag.Ghost, true)
+            pause(200)
+            projectile.setFlag(SpriteFlag.Ghost, false)
+        } else {
+            pause(200)
+        }
     }
 })
 forever(function () {
@@ -1292,9 +1296,13 @@ forever(function () {
             } else {
                 projectile.setImage(assets.image`Laser things leftright2`)
             }
-            projectile.setFlag(SpriteFlag.Ghost, true)
-            pause(200)
-            projectile.setFlag(SpriteFlag.Ghost, false)
+            if (Game_Mode == 2) {
+                projectile.setFlag(SpriteFlag.Ghost, true)
+                pause(200)
+                projectile.setFlag(SpriteFlag.Ghost, false)
+            } else {
+                pause(200)
+            }
         }
     }
 })
@@ -1325,10 +1333,14 @@ forever(function () {
             Torpedo.setImage(assets.image`Torpedo Left`)
         }
         music.sonar.play()
-        Torpedo.setFlag(SpriteFlag.Ghost, true)
-        pause(400)
-        Torpedo.setFlag(SpriteFlag.Ghost, false)
-        pause(600)
+        if (Game_Mode == 2) {
+            Torpedo.setFlag(SpriteFlag.Ghost, true)
+            pause(400)
+            Torpedo.setFlag(SpriteFlag.Ghost, false)
+            pause(600)
+        } else {
+            pause(1000)
+        }
     }
 })
 forever(function () {
@@ -1353,10 +1365,14 @@ forever(function () {
                 Torpedo.setImage(assets.image`Torpedo Left`)
             }
             music.sonar.play()
-            Torpedo.setFlag(SpriteFlag.Ghost, true)
-            pause(400)
-            Torpedo.setFlag(SpriteFlag.Ghost, false)
-            pause(600)
+            if (Game_Mode == 2) {
+                Torpedo.setFlag(SpriteFlag.Ghost, true)
+                pause(400)
+                Torpedo.setFlag(SpriteFlag.Ghost, false)
+                pause(600)
+            } else {
+                pause(1000)
+            }
         }
     }
 })
