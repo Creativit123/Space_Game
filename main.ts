@@ -215,6 +215,17 @@ controller.player2.onButtonEvent(ControllerButton.Up, ControllerButtonEvent.Pres
         Ship_Direction2 = 0
     }
 })
+statusbars.onZero(StatusBarKind.Health, function (status) {
+    if (Game_Mode == 2 && Health_Bar.value == 0) {
+        game.splash("Player 2 Wins!")
+        game.over(true)
+    } else if (Game_Mode == 2) {
+        game.splash("Player 1 Wins!")
+        game.over(true)
+    } else {
+    	
+    }
+})
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Food2, function (sprite, otherSprite) {
     music.bigCrash.playUntilDone()
     info.changeScoreBy(5)
@@ -296,6 +307,90 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Food2, function (sprite, oth
     )
     sprite.destroy()
     Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Torpedo, function (sprite, otherSprite) {
+    if (Game_Mode == 2) {
+        statusbars.getStatusBarAttachedTo(StatusBarKind.Health, sprite).value += -3
+        otherSprite.destroy(effects.fire, 100)
+        Explosion = sprites.createProjectileFromSprite(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . 4 4 . . . . . . . 
+            . . . . . . 4 5 5 4 . . . . . . 
+            . . . . . . 2 5 5 2 . . . . . . 
+            . . . . . . . 2 2 . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, sprite, 0, 0)
+        Explosion.z = 10
+        Explosion.lifespan = 800
+        animation.runImageAnimation(
+        Explosion,
+        [img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . 4 4 . . . . . . . 
+            . . . . . . 4 5 5 4 . . . . . . 
+            . . . . . . 2 5 5 2 . . . . . . 
+            . . . . . . . 2 2 . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . 4 . . . . . 
+            . . . . 2 . . . . 4 4 . . . . . 
+            . . . . 2 4 . . 4 5 4 . . . . . 
+            . . . . . 2 4 d 5 5 4 . . . . . 
+            . . . . . 2 5 5 5 5 4 . . . . . 
+            . . . . . . 2 5 5 5 5 4 . . . . 
+            . . . . . . 2 5 4 2 4 4 . . . . 
+            . . . . . . 4 4 . . 2 4 4 . . . 
+            . . . . . 4 4 . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `,img`
+            . 3 . . . . . . . . . . . 4 . . 
+            . 3 3 . . . . . . . . . 4 4 . . 
+            . 3 d 3 . . 4 4 . . 4 4 d 4 . . 
+            . . 3 5 3 4 5 5 4 4 d d 4 4 . . 
+            . . 3 d 5 d 1 1 d 5 5 d 4 4 . . 
+            . . 4 5 5 1 1 1 1 5 1 1 5 4 . . 
+            . 4 5 5 5 5 1 1 5 1 1 1 d 4 4 . 
+            . 4 d 5 1 1 5 5 5 1 1 1 5 5 4 . 
+            . 4 4 5 1 1 5 5 5 5 5 d 5 5 4 . 
+            . . 4 3 d 5 5 5 d 5 5 d d d 4 . 
+            . 4 5 5 d 5 5 5 d d d 5 5 4 . . 
+            . 4 5 5 d 3 5 d d 3 d 5 5 4 . . 
+            . 4 4 d d 4 d d d 4 3 d d 4 . . 
+            . . 4 5 4 4 4 4 4 4 4 4 4 . . . 
+            . 4 5 4 . . 4 4 4 . . . 4 4 . . 
+            . 4 4 . . . . . . . . . . 4 4 . 
+            `],
+        200,
+        false
+        )
+        music.bigCrash.playUntilDone()
+    }
 })
 sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Food2, function (sprite, otherSprite) {
     music.bigCrash.playUntilDone()
@@ -382,6 +477,13 @@ sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Food2, function (sprite, otherS
 controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     PlayerShip.setImage(assets.image`SpaceShip Right`)
     Ship_Direction = 1
+})
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Projectile, function (sprite, otherSprite) {
+    if (Game_Mode == 2) {
+        statusbars.getStatusBarAttachedTo(StatusBarKind.Health, sprite).value += -1
+        otherSprite.destroy(effects.fire, 100)
+        music.zapped.playUntilDone()
+    }
 })
 controller.player2.onButtonEvent(ControllerButton.Right, ControllerButtonEvent.Pressed, function () {
     if (Players == 2) {
@@ -733,6 +835,7 @@ let Asteroid_Bar: StatusBarSprite = null
 let Asteroid: Sprite = null
 let Explosion: Sprite = null
 let Ship_Direction = 0
+let Health_Bar2: StatusBarSprite = null
 let Shield2: Sprite = null
 let Camera: Sprite = null
 let PlayerShip2: Sprite = null
@@ -748,6 +851,7 @@ let Fuel2: Sprite = null
 let Fuel: Sprite = null
 let PlayerShip: Sprite = null
 let Difficulty = 0
+let Game_Mode = 0
 let Players = 0
 game.splash("Use Arrow Keys and Space")
 Players = game.askForNumber("How many players? (Maximum 2)", 1)
@@ -756,7 +860,7 @@ for (let index = 0; index < 100; index++) {
         Players = game.askForNumber("How many players? (Maximum 2)", 1)
     }
 }
-let Game_Mode = 0
+Game_Mode = 0
 if (Players > 1) {
     Game_Mode = game.askForNumber("Select Mode.  1 for co-op, 2 for PVP", 1)
 }
@@ -775,10 +879,9 @@ if (Game_Mode > 1) {
     PlayerShip.setPosition(0, 60)
     Fuel_Bar = statusbars.create(50, 8, StatusBarKind.Energy)
     Fuel_Bar.attachToSprite(PlayerShip, 43, 0)
-    Fuel_Bar.max = 60
-    Fuel_Bar.value = 8 + Difficulty
+    Fuel_Bar.max = 10000000000000
+    Fuel_Bar.value = 100000000000000 + Difficulty
     Fuel_Bar.setLabel("Fuel")
-    info.setLife(10)
     scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.BothDirections)
     scroller.setCameraScrollingMultipliers(0.5, 0.5)
     Health_Bar = statusbars.create(10, 2, StatusBarKind.Health)
@@ -801,7 +904,7 @@ if (Game_Mode > 1) {
     Shield_Bar.setColor(9, 0)
     Earth = sprites.create(assets.image`Earth`, SpriteKind.Planet)
     Earth.z = -2
-    Earth.y = 1500
+    Earth.y = 1000000
     scene.setTile(9, assets.image`Light Blue`, true)
     if (Players > 1) {
         PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
@@ -827,9 +930,17 @@ if (Game_Mode > 1) {
             `, SpriteKind.Camera)
         Fuel_Bar.attachToSprite(Camera, 1000, 0)
         Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Player)
-        Health_Bar.attachToSprite(Camera, 37, 0)
-        Health_Bar.setBarSize(20, 4)
-        Shield_Bar.setBarSize(20, 4)
+        Health_Bar.attachToSprite(PlayerShip, 1, 0)
+        Health_Bar2 = statusbars.create(10, 2, StatusBarKind.Health)
+        Health_Bar2.attachToSprite(PlayerShip2, 1, 0)
+        Health_Bar2.setLabel("P2")
+        Health_Bar.setLabel("P1")
+        Health_Bar.setBarSize(10, 2)
+        Shield_Bar.setBarSize(10, 2)
+        Health_Bar.max = 10
+        Health_Bar2.max = 10
+        Fuel.setPosition(0, -100)
+        Fuel2.setPosition(0, -100)
     }
 } else {
     Difficulty = game.askForNumber("Select a Difficulty (2=Normal Higher=Easier)", 2)
@@ -959,7 +1070,7 @@ forever(function () {
     }
 })
 forever(function () {
-    if (true) {
+    if (Game_Mode != 2) {
         pause(randint(20000, 30000))
         Asteroid = sprites.createProjectileFromSide(assets.image`Asteroid`, randint(-10, 10), randint(-10, 10))
         Asteroid.setKind(SpriteKind.Asteroid)
@@ -983,7 +1094,9 @@ forever(function () {
     }
 })
 forever(function () {
-    Health_Bar.value = info.life() * 10
+    if (Game_Mode != 2) {
+        Health_Bar.value = info.life() * 10
+    }
 })
 forever(function () {
     if (info.life() > 10 && Players == 2) {
@@ -1063,7 +1176,9 @@ forever(function () {
         } else {
             projectile.setImage(assets.image`Laser things leftright`)
         }
+        projectile.setFlag(SpriteFlag.Ghost, true)
         pause(200)
+        projectile.setFlag(SpriteFlag.Ghost, false)
     }
 })
 forever(function () {
@@ -1173,11 +1288,13 @@ forever(function () {
             projectile = sprites.createProjectileFromSprite(assets.image`Laser things updown`, PlayerShip2, projectile_x_velocity2 + randint(-10, 10), projectile_y_velocity2 + randint(-10, 10))
             projectile.setKind(SpriteKind.Projectile)
             if (Ship_Direction2 == 0 || Ship_Direction2 == 2) {
-                projectile.setImage(assets.image`Laser things updown`)
+                projectile.setImage(assets.image`Laser things updown2`)
             } else {
-                projectile.setImage(assets.image`Laser things leftright`)
+                projectile.setImage(assets.image`Laser things leftright2`)
             }
+            projectile.setFlag(SpriteFlag.Ghost, true)
             pause(200)
+            projectile.setFlag(SpriteFlag.Ghost, false)
         }
     }
 })
@@ -1208,7 +1325,10 @@ forever(function () {
             Torpedo.setImage(assets.image`Torpedo Left`)
         }
         music.sonar.play()
-        pause(1000)
+        Torpedo.setFlag(SpriteFlag.Ghost, true)
+        pause(400)
+        Torpedo.setFlag(SpriteFlag.Ghost, false)
+        pause(600)
     }
 })
 forever(function () {
@@ -1233,7 +1353,10 @@ forever(function () {
                 Torpedo.setImage(assets.image`Torpedo Left`)
             }
             music.sonar.play()
-            pause(1000)
+            Torpedo.setFlag(SpriteFlag.Ghost, true)
+            pause(400)
+            Torpedo.setFlag(SpriteFlag.Ghost, false)
+            pause(600)
         }
     }
 })
@@ -1259,10 +1382,12 @@ forever(function () {
     }
 })
 forever(function () {
-    pause(5000)
-    Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
-    pause(5000)
-    Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
+    if (Game_Mode != 2) {
+        pause(5000)
+        Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
+        pause(5000)
+        Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
+    }
 })
 forever(function () {
     if (Players == 2) {
