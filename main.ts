@@ -115,7 +115,10 @@ controller.combos.attachCombo("" + controller.combos.idToString(controller.combo
     Asteroid_Bar.setLabel("Fuel")
 })
 controller.player2.onButtonEvent(ControllerButton.Down, ControllerButtonEvent.Pressed, function () {
-    PlayerShip2.setImage(assets.image`SpaceShip Sprite2 down`)
+    if (Players == 2) {
+        PlayerShip2.setImage(assets.image`SpaceShip Sprite2 down`)
+        Ship_Direction2 = 2
+    }
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     PlayerShip.setImage(assets.image`SpaceShip Left`)
@@ -207,7 +210,10 @@ sprites.onOverlap(SpriteKind.Food2, SpriteKind.Planet, function (sprite, otherSp
     Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
 })
 controller.player2.onButtonEvent(ControllerButton.Up, ControllerButtonEvent.Pressed, function () {
-    PlayerShip2.setImage(assets.image`SpaceShip Sprite2`)
+    if (Players == 2) {
+        PlayerShip2.setImage(assets.image`SpaceShip Sprite2`)
+        Ship_Direction2 = 0
+    }
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Food2, function (sprite, otherSprite) {
     music.bigCrash.playUntilDone()
@@ -378,10 +384,13 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     Ship_Direction = 1
 })
 controller.player2.onButtonEvent(ControllerButton.Right, ControllerButtonEvent.Pressed, function () {
-    PlayerShip2.setImage(assets.image`SpaceShip Sprite2 right`)
+    if (Players == 2) {
+        PlayerShip2.setImage(assets.image`SpaceShip Sprite2 right`)
+        Ship_Direction2 = 1
+    }
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Asteroid, function (sprite, otherSprite) {
-    if (Math.abs(PlayerShip.vx - otherSprite.vx) + Math.abs(PlayerShip.vy - otherSprite.vy) > 60) {
+    if (Math.abs(sprite.vx - otherSprite.vx) + Math.abs(sprite.vy - otherSprite.vy) > 60) {
         info.changeLifeBy(-2)
         music.bigCrash.playUntilDone()
         Explosion = sprites.createProjectileFromSprite(img`
@@ -401,7 +410,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Asteroid, function (sprite, othe
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . . . . . . . . 
-            `, Asteroid, 0, 0)
+            `, otherSprite, 0, 0)
         Explosion.lifespan = 800
         animation.runImageAnimation(
         Explosion,
@@ -460,15 +469,15 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Asteroid, function (sprite, othe
         200,
         false
         )
-        PlayerShip.setVelocity(Asteroid.vx, Asteroid.vy)
+        sprite.setVelocity(otherSprite.vx, otherSprite.vy)
         otherSprite.destroy()
     } else {
-        PlayerShip.setVelocity(otherSprite.vx, otherSprite.vy)
+        sprite.setVelocity(otherSprite.vx, otherSprite.vy)
         statusbars.getStatusBarAttachedTo(StatusBarKind.AsteroidFuel, otherSprite).value += -0.5
         Fuel_Bar.value += Difficulty / 4 - info.score() / 40000
         music.playTone(262, music.beat(BeatFraction.Sixteenth))
         info.changeScoreBy(2)
-        PlayerShip.follow(otherSprite, 1)
+        sprite.follow(otherSprite, 1)
     }
 })
 controller.combos.attachCombo("" + controller.combos.idToString(controller.combos.ID.A) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.up) + controller.combos.idToString(controller.combos.ID.up), function () {
@@ -485,7 +494,10 @@ controller.down.onEvent(ControllerButtonEvent.Pressed, function () {
     Ship_Direction = 2
 })
 controller.player2.onButtonEvent(ControllerButton.Left, ControllerButtonEvent.Pressed, function () {
-    PlayerShip2.setImage(assets.image`SpaceShip Sprite2 left`)
+    if (Players == 2) {
+        PlayerShip2.setImage(assets.image`SpaceShip Sprite2 left`)
+        Ship_Direction2 = 3
+    }
 })
 sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Food, function (sprite, otherSprite) {
     music.bigCrash.playUntilDone()
@@ -676,8 +688,12 @@ statusbars.onZero(StatusBarKind.AsteroidFuel, function (status) {
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Planet, function (sprite, otherSprite) {
     Fuel_Bar.value += 0.015
-    PlayerShip.setVelocity(0, 0)
-    Landed = -0.5
+    sprite.setVelocity(0, 0)
+    if (PlayerShip.overlapsWith(otherSprite)) {
+        Landed = -0.5
+    } else {
+        Landed2 = -0.5
+    }
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food2, function (sprite, otherSprite) {
     Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
@@ -698,120 +714,215 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
         music.bigCrash.play()
     }
 })
+let Torpedo_Y_Velocity2 = 0
+let Torpedo_X_Velocity2 = 0
 let Torpedo_Y_Velocity = 0
 let Torpedo_X_velocity = 0
 let Torpedo: Sprite = null
+let projectile_y_velocity2 = 0
+let projectile_x_velocity2 = 0
 let projectile: Sprite = null
 let projectile_x_velocity = 0
 let projectile_y_velocity = 0
+let Earth_Distance2 = 0
 let Earth_Distance = 0
+let Landed2 = 0
 let Landed = 0
+let Ship_Direction2 = 0
 let Asteroid_Bar: StatusBarSprite = null
 let Asteroid: Sprite = null
 let Explosion: Sprite = null
 let Ship_Direction = 0
-let Alien_Health: StatusBarSprite = null
-let Alien: Sprite = null
+let Shield2: Sprite = null
 let Camera: Sprite = null
 let PlayerShip2: Sprite = null
+let Earth: Sprite = null
+let Shield_Bar: StatusBarSprite = null
+let Shield: Sprite = null
+let Alien_Label: StatusBarSprite = null
+let Alien_Health: StatusBarSprite = null
+let Alien: Sprite = null
+let Health_Bar: StatusBarSprite = null
 let Fuel_Bar: StatusBarSprite = null
 let Fuel2: Sprite = null
 let Fuel: Sprite = null
 let PlayerShip: Sprite = null
 let Difficulty = 0
+let Players = 0
 game.splash("Use Arrow Keys and Space")
-let Players = game.askForNumber("How many players? (Maximum 2)", 1)
+Players = game.askForNumber("How many players? (Maximum 2)", 1)
 for (let index = 0; index < 100; index++) {
     if (Players > 2) {
         Players = game.askForNumber("How many players? (Maximum 2)", 1)
     }
 }
-if (Players > 2) {
-    game.splash("Player 2, use UIOJKL.")
+let Game_Mode = 0
+if (Players > 1) {
+    Game_Mode = game.askForNumber("Select Mode.  1 for co-op, 2 for PVP", 1)
 }
-Difficulty = game.askForNumber("Select a Difficulty (2=Normal Higher=Easier)", 2)
-if (Difficulty >= 25) {
-    Difficulty = game.askForNumber("Lol no, too high", 2)
-}
-if (Difficulty >= 25) {
-    Difficulty = game.askForNumber("I said too high", 2)
-}
-for (let index = 0; index < 50; index++) {
+if (Game_Mode > 1) {
+    Difficulty = 3
+    game.splash("Arrow keys to move", "Space to fire lasers")
+    game.splash("X to fire torpedoes")
+    if (Players > 1) {
+        game.splash("Player 2, use UIOJKL.")
+    }
+    PlayerShip = sprites.create(assets.image`SpaceShip Sprite`, SpriteKind.Player)
+    scene.setBackgroundImage(assets.image`PVP background`)
+    PlayerShip.setStayInScreen(true)
+    Fuel = sprites.create(assets.image`Fuel`, SpriteKind.Food)
+    Fuel2 = sprites.create(assets.image`Fuel`, SpriteKind.Food2)
+    PlayerShip.setPosition(0, 60)
+    Fuel_Bar = statusbars.create(50, 8, StatusBarKind.Energy)
+    Fuel_Bar.attachToSprite(PlayerShip, 43, 0)
+    Fuel_Bar.max = 60
+    Fuel_Bar.value = 8 + Difficulty
+    Fuel_Bar.setLabel("Fuel")
+    info.setLife(10)
+    scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.BothDirections)
+    scroller.setCameraScrollingMultipliers(0.5, 0.5)
+    Health_Bar = statusbars.create(10, 2, StatusBarKind.Health)
+    Health_Bar.attachToSprite(PlayerShip, 1, 0)
+    Health_Bar.setLabel("HP")
+    Health_Bar.setColor(7, 2)
+    Alien = sprites.create(assets.image`Alien up`, SpriteKind.Enemy)
+    Alien.setPosition(-100, 100)
+    Alien.z = 1
+    Alien.follow(PlayerShip, 0)
+    Alien_Health = statusbars.create(10, 2, StatusBarKind.Health)
+    Alien_Health.attachToSprite(Alien, 4, 0)
+    Alien_Health.setLabel("HP")
+    Alien_Label = statusbars.create(0, 0, StatusBarKind.Health)
+    Alien_Label.attachToSprite(Alien, 10, 0)
+    Alien_Label.setLabel("Alien")
+    Shield = sprites.create(assets.image`Shield`, SpriteKind.Player)
+    Shield_Bar = statusbars.create(10, 2, StatusBarKind.Health)
+    Shield_Bar.max = 10
+    Shield_Bar.setColor(9, 0)
+    Earth = sprites.create(assets.image`Earth`, SpriteKind.Planet)
+    Earth.z = -2
+    Earth.y = 1500
+    scene.setTile(9, assets.image`Light Blue`, true)
+    if (Players > 1) {
+        PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
+        PlayerShip2.setPosition(160, 60)
+        PlayerShip2.setStayInScreen(true)
+        Camera = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, SpriteKind.Camera)
+        Fuel_Bar.attachToSprite(Camera, 1000, 0)
+        Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Player)
+        Health_Bar.attachToSprite(Camera, 37, 0)
+        Health_Bar.setBarSize(20, 4)
+        Shield_Bar.setBarSize(20, 4)
+    }
+} else {
+    Difficulty = game.askForNumber("Select a Difficulty (2=Normal Higher=Easier)", 2)
     if (Difficulty >= 25) {
-        Difficulty = game.askForNumber("Try below 25", 2)
+        Difficulty = game.askForNumber("Lol no, too high", 2)
+    }
+    if (Difficulty >= 25) {
+        Difficulty = game.askForNumber("I said too high", 2)
+    }
+    for (let index = 0; index < 50; index++) {
+        if (Difficulty >= 25) {
+            Difficulty = game.askForNumber("Try below 25", 2)
+        }
+    }
+    if (Difficulty >= 25) {
+        Difficulty = game.askForNumber("You sure?", 2)
+    }
+    if (Difficulty >= 25) {
+        game.splash("OK fine")
+    }
+    game.splash("Arrow keys to move", "Space to fire lasers")
+    game.splash("X to fire torpedoes")
+    if (Players > 1) {
+        game.splash("Player 2, use UIOJKL.")
+    }
+    PlayerShip = sprites.create(assets.image`SpaceShip Sprite`, SpriteKind.Player)
+    scene.setBackgroundImage(assets.image`Starry Background`)
+    PlayerShip.setStayInScreen(true)
+    Fuel = sprites.create(assets.image`Fuel`, SpriteKind.Food)
+    Fuel2 = sprites.create(assets.image`Fuel`, SpriteKind.Food2)
+    PlayerShip.setVelocity(70, 0)
+    scene.cameraFollowSprite(PlayerShip)
+    Fuel_Bar = statusbars.create(50, 8, StatusBarKind.Energy)
+    Fuel_Bar.attachToSprite(PlayerShip, 43, 0)
+    Fuel_Bar.max = 60
+    Fuel_Bar.value = 8 + Difficulty
+    Fuel_Bar.setLabel("Fuel")
+    info.setLife(10)
+    scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.BothDirections)
+    scroller.setCameraScrollingMultipliers(0.5, 0.5)
+    Health_Bar = statusbars.create(10, 2, StatusBarKind.Health)
+    Health_Bar.attachToSprite(PlayerShip, 1, 0)
+    Health_Bar.setLabel("HP")
+    Health_Bar.setColor(7, 2)
+    Alien = sprites.create(assets.image`Alien up`, SpriteKind.Enemy)
+    Alien.setPosition(-100, 100)
+    Alien.z = 1
+    Alien.follow(PlayerShip, PlayerShip.vx + PlayerShip.vy - 20)
+    Alien_Health = statusbars.create(10, 2, StatusBarKind.Health)
+    Alien_Health.attachToSprite(Alien, 4, 0)
+    Alien_Health.setLabel("HP")
+    Alien_Label = statusbars.create(0, 0, StatusBarKind.Health)
+    Alien_Label.attachToSprite(Alien, 10, 0)
+    Alien_Label.setLabel("Alien")
+    Shield = sprites.create(assets.image`Shield`, SpriteKind.Player)
+    Shield_Bar = statusbars.create(10, 2, StatusBarKind.Health)
+    Shield_Bar.max = 10
+    Shield_Bar.setColor(9, 0)
+    Earth = sprites.create(assets.image`Earth`, SpriteKind.Planet)
+    Earth.z = -2
+    Earth.y = 150
+    scene.setTile(9, assets.image`Light Blue`, true)
+    if (Players > 1) {
+        PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
+        PlayerShip2.setStayInScreen(true)
+        PlayerShip2.setVelocity(70, 0)
+        Camera = sprites.create(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, SpriteKind.Camera)
+        Fuel_Bar.attachToSprite(Camera, 43, 0)
+        Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Player)
+        Health_Bar.attachToSprite(Camera, 37, 0)
+        Health_Bar.setBarSize(20, 4)
+        Shield_Bar.setBarSize(20, 4)
     }
 }
-if (Difficulty >= 25) {
-    Difficulty = game.askForNumber("You sure?", 2)
-}
-if (Difficulty >= 25) {
-    game.splash("OK fine")
-}
-game.splash("Arrow keys to move", "Space to fire lasers")
-game.splash("X to fire torpedoes")
-PlayerShip = sprites.create(assets.image`SpaceShip Sprite`, SpriteKind.Player)
-scene.setBackgroundImage(assets.image`Starry Background`)
-PlayerShip.setStayInScreen(true)
-Fuel = sprites.create(assets.image`Fuel`, SpriteKind.Food)
-Fuel2 = sprites.create(assets.image`Fuel`, SpriteKind.Food2)
-PlayerShip.setVelocity(70, 0)
-scene.cameraFollowSprite(PlayerShip)
-Fuel_Bar = statusbars.create(50, 8, StatusBarKind.Energy)
-Fuel_Bar.attachToSprite(PlayerShip, 43, 0)
-Fuel_Bar.max = 60
-Fuel_Bar.value = 8 + Difficulty
-Fuel_Bar.setLabel("Fuel")
-if (Players > 1) {
-    PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
-    PlayerShip2.setStayInScreen(true)
-    PlayerShip2.setVelocity(70, 0)
-    Camera = sprites.create(img`
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . 
-        `, SpriteKind.Camera)
-    Fuel_Bar.attachToSprite(Camera, 43, 0)
-}
-info.setLife(10)
-scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.BothDirections)
-scroller.setCameraScrollingMultipliers(0.5, 0.5)
-let Health_Bar = statusbars.create(10, 2, StatusBarKind.Health)
-Health_Bar.attachToSprite(PlayerShip, 1, 0)
-Health_Bar.setLabel("HP")
-Health_Bar.setColor(7, 2)
-Alien = sprites.create(assets.image`Alien up`, SpriteKind.Enemy)
-Alien.setPosition(-100, 100)
-Alien.z = 1
-Alien.follow(PlayerShip, PlayerShip.vx + PlayerShip.vy - 20)
-Alien_Health = statusbars.create(10, 2, StatusBarKind.Health)
-Alien_Health.attachToSprite(Alien, 4, 0)
-Alien_Health.setLabel("HP")
-let Alien_Label = statusbars.create(0, 0, StatusBarKind.Health)
-Alien_Label.attachToSprite(Alien, 10, 0)
-Alien_Label.setLabel("Alien")
-let Shield = sprites.create(assets.image`Shield`, SpriteKind.Player)
-let Shield_Bar = statusbars.create(10, 2, StatusBarKind.Health)
-Shield_Bar.max = 10
-Shield_Bar.setColor(9, 0)
-let Earth = sprites.create(assets.image`Earth`, SpriteKind.Planet)
-Earth.z = -2
-Earth.y = 150
-scene.setTile(9, assets.image`Light Blue`, true)
 forever(function () {
-    if (Players > 1) {
+    if (Players > 1 && Game_Mode != 2) {
         scene.centerCameraAt((PlayerShip.x + PlayerShip2.x) / 2, (PlayerShip.y + PlayerShip2.y) / 2)
         Camera.setPosition((PlayerShip.x + PlayerShip2.x) / 2, (PlayerShip.y + PlayerShip2.y) / 2)
     }
@@ -862,7 +973,7 @@ forever(function () {
     }
 })
 forever(function () {
-    if (info.life() > 10) {
+    if (info.life() > 10 && Players == 1) {
         Shield.setPosition(PlayerShip.x, PlayerShip.y)
         Shield_Bar.attachToSprite(PlayerShip, 3, 6)
         Shield_Bar.value = info.life() - 10
@@ -873,6 +984,19 @@ forever(function () {
 })
 forever(function () {
     Health_Bar.value = info.life() * 10
+})
+forever(function () {
+    if (info.life() > 10 && Players == 2) {
+        Shield.setPosition(PlayerShip.x, PlayerShip.y)
+        Shield2.setPosition(PlayerShip2.x, PlayerShip2.y)
+        Shield_Bar.attachToSprite(Camera, 38, 6)
+        Shield_Bar.value = info.life() - 10
+    } else if (Players == 2) {
+        Shield2.setPosition(1000000000000, 1000000000)
+        Shield_Bar.attachToSprite(Camera, 100000, 0)
+    } else {
+    	
+    }
 })
 forever(function () {
     if (controller.player2.isPressed(ControllerButton.Left)) {
@@ -902,6 +1026,13 @@ forever(function () {
     PlayerShip.ay = 500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 * Landed
 })
 forever(function () {
+    if (Players == 2) {
+        Earth_Distance2 = Math.sqrt((Earth.x - PlayerShip2.x) ** 2 + (Earth.y - PlayerShip2.y) ** 2)
+        PlayerShip2.ax = 500000 * (Earth.x - PlayerShip2.x) / Earth_Distance ** 3 * Landed2
+        PlayerShip2.ay = 500000 * (Earth.y - PlayerShip2.y) / Earth_Distance ** 3 * Landed2
+    }
+})
+forever(function () {
     if (Ship_Direction == 0) {
         projectile_y_velocity = PlayerShip.vy + -100
         projectile_x_velocity = 0
@@ -920,11 +1051,6 @@ forever(function () {
                 }
             }
         }
-    }
-})
-forever(function () {
-    if (Earth_Distance > 46) {
-        Landed = 1
     }
 })
 forever(function () {
@@ -1031,6 +1157,31 @@ forever(function () {
     }
 })
 forever(function () {
+    if (Earth_Distance > 46) {
+        Landed = 1
+    }
+})
+forever(function () {
+    if (Earth_Distance2 > 46) {
+        Landed2 = 1
+    }
+})
+forever(function () {
+    if (Players == 2) {
+        while (controller.player2.isPressed(ControllerButton.A)) {
+            music.pewPew.play()
+            projectile = sprites.createProjectileFromSprite(assets.image`Laser things updown`, PlayerShip2, projectile_x_velocity2 + randint(-10, 10), projectile_y_velocity2 + randint(-10, 10))
+            projectile.setKind(SpriteKind.Projectile)
+            if (Ship_Direction2 == 0 || Ship_Direction2 == 2) {
+                projectile.setImage(assets.image`Laser things updown`)
+            } else {
+                projectile.setImage(assets.image`Laser things leftright`)
+            }
+            pause(200)
+        }
+    }
+})
+forever(function () {
     while (controller.anyButton.isPressed()) {
         Fuel_Bar.value += -0.1
         pause(100)
@@ -1061,8 +1212,36 @@ forever(function () {
     }
 })
 forever(function () {
-    Fuel_Bar.value += -0.05
-    pause(100)
+    if (Players == 2) {
+        while (controller.player2.isPressed(ControllerButton.B)) {
+            Torpedo = sprites.createProjectileFromSprite(assets.image`Torpedo Up`, PlayerShip2, 0, 0)
+            Torpedo.ax = Torpedo_X_Velocity2
+            Torpedo.ay = Torpedo_Y_Velocity2
+            Torpedo.setFlag(SpriteFlag.AutoDestroy, false)
+            Torpedo.setVelocity(Torpedo_X_Velocity2 / 2, Torpedo_Y_Velocity2 / 2)
+            Torpedo.lifespan = 10000
+            Torpedo.setKind(SpriteKind.Torpedo)
+            Torpedo.startEffect(effects.fire)
+            Fuel_Bar.value += -3
+            if (Ship_Direction2 == 0) {
+                Torpedo.setImage(assets.image`Torpedo Up`)
+            } else if (Ship_Direction2 == 2) {
+                Torpedo.setImage(assets.image`Torpedo Down`)
+            } else if (Ship_Direction2 == 1) {
+                Torpedo.setImage(assets.image`Torpedo Right`)
+            } else {
+                Torpedo.setImage(assets.image`Torpedo Left`)
+            }
+            music.sonar.play()
+            pause(1000)
+        }
+    }
+})
+forever(function () {
+    if (Game_Mode != 2) {
+        Fuel_Bar.value += -0.05
+        pause(100)
+    }
 })
 forever(function () {
     if (Ship_Direction == 0) {
@@ -1084,4 +1263,44 @@ forever(function () {
     Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
     pause(5000)
     Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
+})
+forever(function () {
+    if (Players == 2) {
+        if (Ship_Direction2 == 0) {
+            projectile_y_velocity2 = PlayerShip2.vy + -100
+            projectile_x_velocity2 = 0
+        } else {
+            if (Ship_Direction2 == 2) {
+                projectile_y_velocity2 = PlayerShip2.vy + 100
+                projectile_x_velocity2 = 0
+            } else {
+                if (Ship_Direction2 == 3) {
+                    projectile_x_velocity2 = PlayerShip2.vx + -100
+                    projectile_y_velocity2 = 0
+                } else {
+                    if (Ship_Direction2 == 1) {
+                        projectile_x_velocity2 = PlayerShip2.vx + 100
+                        projectile_y_velocity2 = 0
+                    }
+                }
+            }
+        }
+    }
+})
+forever(function () {
+    if (Players == 2) {
+        if (Ship_Direction2 == 0) {
+            Torpedo_Y_Velocity2 = PlayerShip2.vy + -100
+            Torpedo_X_Velocity2 = 0
+        } else if (Ship_Direction2 == 1) {
+            Torpedo_X_Velocity2 = PlayerShip2.vx + 100
+            Torpedo_Y_Velocity2 = 0
+        } else if (Ship_Direction2 == 2) {
+            Torpedo_Y_Velocity2 = PlayerShip2.vy + 100
+            Torpedo_X_Velocity2 = 0
+        } else {
+            Torpedo_X_Velocity2 = PlayerShip2.vx + -100
+            Torpedo_Y_Velocity2 = 0
+        }
+    }
 })
