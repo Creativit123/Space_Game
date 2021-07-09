@@ -576,7 +576,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Asteroid, function (sprite, othe
     } else {
         sprite.setVelocity(otherSprite.vx, otherSprite.vy)
         statusbars.getStatusBarAttachedTo(StatusBarKind.AsteroidFuel, otherSprite).value += -0.5
-        Fuel_Bar.value += Difficulty / 4 - info.score() / 40000
+        Fuel_Bar.value += Math.constrain(Difficulty / 4 - info.score() / 40000, 0.2, 1000)
         music.playTone(262, music.beat(BeatFraction.Sixteenth))
         info.changeScoreBy(2)
         sprite.follow(otherSprite, 1)
@@ -687,7 +687,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSpr
     Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
     music.baDing.playUntilDone()
     info.changeScoreBy(10)
-    Fuel_Bar.value += Difficulty - info.score() / 1000
+    Fuel_Bar.value += Math.constrain(Difficulty - info.score() / 1000, 0.1, 1000)
 })
 sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Enemy, function (sprite, otherSprite) {
     Alien_Health.value += -1000
@@ -801,7 +801,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Food2, function (sprite, otherSp
     Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
     music.baDing.playUntilDone()
     info.changeScoreBy(10)
-    Fuel_Bar.value += Difficulty - info.score() / 1000
+    Fuel_Bar.value += Math.constrain(Difficulty - info.score() / 1000, 0.1, 1000)
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, otherSprite) {
     Alien_Health.value += -25
@@ -818,8 +818,12 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
 })
 let Torpedo_Y_Velocity2 = 0
 let Torpedo_X_Velocity2 = 0
+let Torpedo_Y_Acceleration2 = 0
+let Torpedo_X_Acceleration2 = 0
 let Torpedo_Y_Velocity = 0
-let Torpedo_X_velocity = 0
+let Torpedo_X_Velocity = 0
+let Torpedo_Y_Acceleration = 0
+let Torpedo_X_Acceleration = 0
 let Torpedo: Sprite = null
 let projectile_y_velocity2 = 0
 let projectile_x_velocity2 = 0
@@ -854,15 +858,15 @@ let Difficulty = 0
 let Game_Mode = 0
 let Players = 0
 game.splash("Use Arrow Keys and Space")
-Players = game.askForNumber("How many players? (Maximum 2)", 1)
+Players = game.askForNumber("How many players? (Maximum 2)", 2)
 for (let index = 0; index < 100; index++) {
-    if (Players > 2) {
-        Players = game.askForNumber("How many players? (Maximum 2)", 1)
+    if (Players > 2 || Players < 1) {
+        Players = game.askForNumber("How many players? (Maximum 2)", 2)
     }
 }
 Game_Mode = 0
 if (Players > 1) {
-    Game_Mode = game.askForNumber("Select Mode.  1 for co-op, 2 for PVP", 1)
+    Game_Mode = game.askForNumber("Select Mode.  1 for co-op, 2 for PVP", 2)
 }
 if (Game_Mode > 1) {
     Difficulty = 3
@@ -1315,13 +1319,13 @@ forever(function () {
 forever(function () {
     while (controller.B.isPressed()) {
         Torpedo = sprites.createProjectileFromSprite(assets.image`Torpedo Up`, PlayerShip, 0, 0)
-        Torpedo.ax = Torpedo_X_velocity
-        Torpedo.ay = Torpedo_Y_Velocity
+        Torpedo.ax = Torpedo_X_Acceleration
+        Torpedo.ay = Torpedo_Y_Acceleration
         Torpedo.setFlag(SpriteFlag.AutoDestroy, false)
-        Torpedo.setVelocity(Torpedo_X_velocity / 2, Torpedo_Y_Velocity / 2)
+        Torpedo.setVelocity(Torpedo_X_Velocity, Torpedo_Y_Velocity)
         Torpedo.lifespan = 10000
         Torpedo.setKind(SpriteKind.Torpedo)
-        Torpedo.startEffect(effects.fire)
+        Torpedo.startEffect(effects.fire, 10000)
         Fuel_Bar.value += -3
         if (Ship_Direction == 0) {
             Torpedo.setImage(assets.image`Torpedo Up`)
@@ -1347,13 +1351,13 @@ forever(function () {
     if (Players == 2) {
         while (controller.player2.isPressed(ControllerButton.B)) {
             Torpedo = sprites.createProjectileFromSprite(assets.image`Torpedo Up`, PlayerShip2, 0, 0)
-            Torpedo.ax = Torpedo_X_Velocity2
-            Torpedo.ay = Torpedo_Y_Velocity2
+            Torpedo.ax = Torpedo_X_Acceleration2
+            Torpedo.ay = Torpedo_Y_Acceleration2
             Torpedo.setFlag(SpriteFlag.AutoDestroy, false)
-            Torpedo.setVelocity(Torpedo_X_Velocity2 / 2, Torpedo_Y_Velocity2 / 2)
+            Torpedo.setVelocity(Torpedo_X_Velocity2, Torpedo_Y_Velocity2)
             Torpedo.lifespan = 10000
             Torpedo.setKind(SpriteKind.Torpedo)
-            Torpedo.startEffect(effects.fire)
+            Torpedo.startEffect(effects.fire, 10000)
             Fuel_Bar.value += -3
             if (Ship_Direction2 == 0) {
                 Torpedo.setImage(assets.image`Torpedo Up`)
@@ -1380,21 +1384,6 @@ forever(function () {
     if (Game_Mode != 2) {
         Fuel_Bar.value += -0.05
         pause(100)
-    }
-})
-forever(function () {
-    if (Ship_Direction == 0) {
-        Torpedo_Y_Velocity = PlayerShip.vy + -100
-        Torpedo_X_velocity = 0
-    } else if (Ship_Direction == 1) {
-        Torpedo_X_velocity = PlayerShip.vx + 100
-        Torpedo_Y_Velocity = 0
-    } else if (Ship_Direction == 2) {
-        Torpedo_Y_Velocity = PlayerShip.vy + 100
-        Torpedo_X_velocity = 0
-    } else {
-        Torpedo_X_velocity = PlayerShip.vx + -100
-        Torpedo_Y_Velocity = 0
     }
 })
 forever(function () {
@@ -1429,18 +1418,49 @@ forever(function () {
     }
 })
 forever(function () {
+    if (Ship_Direction == 0) {
+        Torpedo_Y_Acceleration = -100
+        Torpedo_X_Acceleration = 0
+        Torpedo_X_Velocity = 0
+        Torpedo_Y_Velocity = PlayerShip.vy + -50
+    } else if (Ship_Direction == 1) {
+        Torpedo_X_Acceleration = 100
+        Torpedo_Y_Acceleration = 0
+        Torpedo_X_Velocity = PlayerShip.vx + 50
+        Torpedo_Y_Velocity = 0
+    } else if (Ship_Direction == 2) {
+        Torpedo_Y_Acceleration = 100
+        Torpedo_X_Acceleration = 0
+        Torpedo_X_Velocity = 0
+        Torpedo_Y_Velocity = PlayerShip.vy + 50
+    } else {
+        Torpedo_X_Acceleration = -100
+        Torpedo_Y_Acceleration = 0
+        Torpedo_X_Velocity = PlayerShip.vx + -50
+        Torpedo_Y_Velocity = 0
+    }
+})
+forever(function () {
     if (Players == 2) {
         if (Ship_Direction2 == 0) {
-            Torpedo_Y_Velocity2 = PlayerShip2.vy + -100
+            Torpedo_Y_Acceleration2 = -100
+            Torpedo_X_Acceleration2 = 0
             Torpedo_X_Velocity2 = 0
+            Torpedo_Y_Velocity2 = PlayerShip2.vy + -50
         } else if (Ship_Direction2 == 1) {
-            Torpedo_X_Velocity2 = PlayerShip2.vx + 100
+            Torpedo_X_Acceleration2 = 100
+            Torpedo_Y_Acceleration2 = 0
+            Torpedo_X_Velocity2 = PlayerShip2.vx + 50
             Torpedo_Y_Velocity2 = 0
         } else if (Ship_Direction2 == 2) {
-            Torpedo_Y_Velocity2 = PlayerShip2.vy + 100
+            Torpedo_Y_Acceleration2 = 100
+            Torpedo_X_Acceleration2 = 0
             Torpedo_X_Velocity2 = 0
+            Torpedo_Y_Velocity2 = PlayerShip2.vy + 50
         } else {
-            Torpedo_X_Velocity2 = PlayerShip2.vx + -100
+            Torpedo_X_Acceleration2 = -100
+            Torpedo_Y_Acceleration2 = 0
+            Torpedo_X_Velocity2 = PlayerShip2.vx + -50
             Torpedo_Y_Velocity2 = 0
         }
     }
