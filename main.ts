@@ -858,15 +858,29 @@ let Difficulty = 0
 let Game_Mode = 0
 let Players = 0
 game.splash("Use Arrow Keys and Space")
-Players = game.askForNumber("How many players? (Maximum 2)", 2)
+music.baDing.play()
 for (let index = 0; index < 100; index++) {
     if (Players > 2 || Players < 1) {
         Players = game.askForNumber("How many players? (Maximum 2)", 2)
+        if (Players > 2 || Players < 1) {
+            music.buzzer.play()
+        } else {
+            music.baDing.play()
+        }
     }
 }
 Game_Mode = 0
 if (Players > 1) {
-    Game_Mode = game.askForNumber("Select Mode.  1 for co-op, 2 for PVP", 2)
+    for (let index = 0; index < 100; index++) {
+        if (Game_Mode > 2 || Game_Mode < 1) {
+            Game_Mode = game.askForNumber("Select Mode.  1 for co-op, 2 for PVP", 2)
+            if (Game_Mode > 2 || Game_Mode < 1) {
+                music.buzzer.play()
+            } else {
+                music.baDing.play()
+            }
+        }
+    }
 }
 if (Game_Mode > 1) {
     Difficulty = 3
@@ -878,6 +892,7 @@ if (Game_Mode > 1) {
     PlayerShip = sprites.create(assets.image`SpaceShip Sprite`, SpriteKind.Player)
     scene.setBackgroundImage(assets.image`PVP background`)
     PlayerShip.setStayInScreen(true)
+    PlayerShip.setBounceOnWall(true)
     Fuel = sprites.create(assets.image`Fuel`, SpriteKind.Food)
     Fuel2 = sprites.create(assets.image`Fuel`, SpriteKind.Food2)
     PlayerShip.setPosition(0, 60)
@@ -914,6 +929,7 @@ if (Game_Mode > 1) {
         PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
         PlayerShip2.setPosition(160, 60)
         PlayerShip2.setStayInScreen(true)
+        PlayerShip2.setBounceOnWall(true)
         Camera = sprites.create(img`
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . . . . . . . . 
@@ -949,18 +965,39 @@ if (Game_Mode > 1) {
 } else {
     Difficulty = game.askForNumber("Select a Difficulty (2=Normal Higher=Easier)", 2)
     if (Difficulty >= 25) {
+        music.buzzer.play()
+    } else {
+        music.baDing.play()
+    }
+    if (Difficulty >= 25) {
         Difficulty = game.askForNumber("Lol no, too high", 2)
+        if (Difficulty >= 25) {
+            music.buzzer.play()
+        } else {
+            music.baDing.play()
+        }
     }
     if (Difficulty >= 25) {
         Difficulty = game.askForNumber("I said too high", 2)
+        if (Difficulty >= 25) {
+            music.buzzer.play()
+        } else {
+            music.baDing.play()
+        }
     }
     for (let index = 0; index < 50; index++) {
         if (Difficulty >= 25) {
             Difficulty = game.askForNumber("Try below 25", 2)
+            if (Difficulty >= 25) {
+                music.buzzer.play()
+            } else {
+                music.baDing.play()
+            }
         }
     }
     if (Difficulty >= 25) {
         Difficulty = game.askForNumber("You sure?", 2)
+        music.baDing.play()
     }
     if (Difficulty >= 25) {
         game.splash("OK fine")
