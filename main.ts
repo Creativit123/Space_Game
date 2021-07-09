@@ -810,7 +810,7 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, oth
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
     pause(500)
-    if (PlayerShip.overlapsWith(Alien)) {
+    if (sprite.overlapsWith(otherSprite)) {
         info.changeLifeBy(-1)
         Fuel_Bar.value += -3
         music.bigCrash.play()
@@ -830,6 +830,7 @@ let projectile_x_velocity2 = 0
 let projectile: Sprite = null
 let projectile_x_velocity = 0
 let projectile_y_velocity = 0
+let Alien_Follow = 0
 let Earth_Distance2 = 0
 let Earth_Distance = 0
 let Landed2 = 0
@@ -1182,48 +1183,8 @@ forever(function () {
 forever(function () {
     if (Players == 2) {
         Earth_Distance2 = Math.sqrt((Earth.x - PlayerShip2.x) ** 2 + (Earth.y - PlayerShip2.y) ** 2)
-        PlayerShip2.ax = 500000 * (Earth.x - PlayerShip2.x) / Earth_Distance ** 3 * Landed2
-        PlayerShip2.ay = 500000 * (Earth.y - PlayerShip2.y) / Earth_Distance ** 3 * Landed2
-    }
-})
-forever(function () {
-    if (Ship_Direction == 0) {
-        projectile_y_velocity = PlayerShip.vy + -100
-        projectile_x_velocity = 0
-    } else {
-        if (Ship_Direction == 2) {
-            projectile_y_velocity = PlayerShip.vy + 100
-            projectile_x_velocity = 0
-        } else {
-            if (Ship_Direction == 3) {
-                projectile_x_velocity = PlayerShip.vx + -100
-                projectile_y_velocity = 0
-            } else {
-                if (Ship_Direction == 1) {
-                    projectile_x_velocity = PlayerShip.vx + 100
-                    projectile_y_velocity = 0
-                }
-            }
-        }
-    }
-})
-forever(function () {
-    while (controller.A.isPressed()) {
-        music.pewPew.play()
-        projectile = sprites.createProjectileFromSprite(assets.image`Laser things updown`, PlayerShip, projectile_x_velocity + randint(-10, 10), projectile_y_velocity + randint(-10, 10))
-        projectile.setKind(SpriteKind.Projectile)
-        if (Ship_Direction == 0 || Ship_Direction == 2) {
-            projectile.setImage(assets.image`Laser things updown`)
-        } else {
-            projectile.setImage(assets.image`Laser things leftright`)
-        }
-        if (Game_Mode == 2) {
-            projectile.setFlag(SpriteFlag.Ghost, true)
-            pause(200)
-            projectile.setFlag(SpriteFlag.Ghost, false)
-        } else {
-            pause(200)
-        }
+        PlayerShip2.ax = 500000 * (Earth.x - PlayerShip2.x) / Earth_Distance2 ** 3 * Landed2
+        PlayerShip2.ay = 500000 * (Earth.y - PlayerShip2.y) / Earth_Distance2 ** 3 * Landed2
     }
 })
 forever(function () {
@@ -1313,7 +1274,56 @@ forever(function () {
         Alien_Health.value = 100
         info.changeScoreBy(50)
         pause(5000)
-        Alien.follow(PlayerShip, 50)
+        if (Players > 1) {
+            Alien_Follow = randint(1, 2)
+            if (Alien_Follow == 1) {
+                Alien.follow(PlayerShip, 50)
+            } else {
+                Alien.follow(PlayerShip2, 50)
+            }
+        } else {
+            Alien.follow(PlayerShip, 50)
+        }
+    }
+})
+forever(function () {
+    if (Ship_Direction == 0) {
+        projectile_y_velocity = PlayerShip.vy + -100
+        projectile_x_velocity = 0
+    } else {
+        if (Ship_Direction == 2) {
+            projectile_y_velocity = PlayerShip.vy + 100
+            projectile_x_velocity = 0
+        } else {
+            if (Ship_Direction == 3) {
+                projectile_x_velocity = PlayerShip.vx + -100
+                projectile_y_velocity = 0
+            } else {
+                if (Ship_Direction == 1) {
+                    projectile_x_velocity = PlayerShip.vx + 100
+                    projectile_y_velocity = 0
+                }
+            }
+        }
+    }
+})
+forever(function () {
+    while (controller.A.isPressed()) {
+        music.pewPew.play()
+        projectile = sprites.createProjectileFromSprite(assets.image`Laser things updown`, PlayerShip, projectile_x_velocity + randint(-10, 10), projectile_y_velocity + randint(-10, 10))
+        projectile.setKind(SpriteKind.Projectile)
+        if (Ship_Direction == 0 || Ship_Direction == 2) {
+            projectile.setImage(assets.image`Laser things updown`)
+        } else {
+            projectile.setImage(assets.image`Laser things leftright`)
+        }
+        if (Game_Mode == 2) {
+            projectile.setFlag(SpriteFlag.Ghost, true)
+            pause(200)
+            projectile.setFlag(SpriteFlag.Ghost, false)
+        } else {
+            pause(200)
+        }
     }
 })
 forever(function () {
