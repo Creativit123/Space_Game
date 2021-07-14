@@ -7,6 +7,8 @@ namespace SpriteKind {
     export const Torpedo = SpriteKind.create()
     export const Camera = SpriteKind.create()
     export const Shield = SpriteKind.create()
+    export const Map = SpriteKind.create()
+    export const Marker = SpriteKind.create()
 }
 namespace StatusBarKind {
     export const AsteroidFuel = StatusBarKind.create()
@@ -104,7 +106,7 @@ controller.combos.attachCombo("" + controller.combos.idToString(controller.combo
     Fuel_Bar.max = 100000000000000
     Fuel_Bar.value = 100000000000000
     info.setLife(1000)
-    PlayerShip.say("Test Mode On", 5000)
+    PlayerShip.say("Test Mode 1 On", 5000)
     Asteroid = sprites.createProjectileFromSide(assets.image`Asteroid`, randint(-10, 10), randint(-10, 10))
     Asteroid.setKind(SpriteKind.Asteroid)
     Asteroid.setFlag(SpriteFlag.AutoDestroy, false)
@@ -120,6 +122,10 @@ controller.player2.onButtonEvent(ControllerButton.Down, ControllerButtonEvent.Pr
         PlayerShip2.setImage(assets.image`SpaceShip Sprite2 down`)
         Ship_Direction2 = 2
     }
+})
+controller.combos.attachCombo("" + controller.combos.idToString(controller.combos.ID.up) + controller.combos.idToString(controller.combos.ID.up) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.B), function () {
+    PlayerShip.setFlag(SpriteFlag.GhostThroughSprites, true)
+    PlayerShip.say("Test Mode 2 On", 5000)
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     PlayerShip.setImage(assets.image`SpaceShip Left`)
@@ -587,7 +593,8 @@ controller.combos.attachCombo("" + controller.combos.idToString(controller.combo
     Fuel_Bar.max = 60
     Fuel_Bar.value = 20
     info.setLife(10)
-    PlayerShip.say("Test Mode Off", 5000)
+    PlayerShip.setFlag(SpriteFlag.Ghost, false)
+    PlayerShip.say("Test Mode(s) Off", 5000)
 })
 sprites.onOverlap(SpriteKind.Food, SpriteKind.Planet, function (sprite, otherSprite) {
     Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
@@ -791,11 +798,16 @@ statusbars.onZero(StatusBarKind.AsteroidFuel, function (status) {
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Planet, function (sprite, otherSprite) {
     Fuel_Bar.value += 0.015
-    sprite.setVelocity(sprite.vx / 1.2, sprite.vy / 1.2)
+    sprite.setVelocity(sprite.vx / 1.4, sprite.vy / 1.4)
     if (PlayerShip.overlapsWith(otherSprite)) {
         Landed = -0.5
     } else {
+        Landed = 1
+    }
+    if (PlayerShip2.overlapsWith(otherSprite)) {
         Landed2 = -0.5
+    } else {
+        Landed2 = 1
     }
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food2, function (sprite, otherSprite) {
@@ -832,7 +844,9 @@ let projectile: Sprite = null
 let projectile_x_velocity = 0
 let projectile_y_velocity = 0
 let Alien_Follow = 0
+let Mars_Distance2 = 0
 let Earth_Distance2 = 0
+let Mars_Distance = 0
 let Earth_Distance = 0
 let Landed2 = 0
 let Landed = 0
@@ -841,6 +855,9 @@ let Asteroid_Bar: StatusBarSprite = null
 let Asteroid: Sprite = null
 let Explosion: Sprite = null
 let Ship_Direction = 0
+let Mars_Pointer: Sprite = null
+let Earth_Pointer: Sprite = null
+let Mars: Sprite = null
 let Health_Bar2: StatusBarSprite = null
 let Shield2: Sprite = null
 let Camera: Sprite = null
@@ -919,7 +936,7 @@ if (Game_Mode > 1) {
     Alien_Label = statusbars.create(0, 0, StatusBarKind.Health)
     Alien_Label.attachToSprite(Alien, 10, 0)
     Alien_Label.setLabel("Alien")
-    Shield = sprites.create(assets.image`Shield`, SpriteKind.Player)
+    Shield = sprites.create(assets.image`Shield`, SpriteKind.Shield)
     Shield_Bar = statusbars.create(10, 2, StatusBarKind.Health)
     Shield_Bar.max = 10
     Shield_Bar.setColor(9, 0)
@@ -951,7 +968,7 @@ if (Game_Mode > 1) {
             . . . . . . . . . . . . . . . . 
             `, SpriteKind.Camera)
         Fuel_Bar.attachToSprite(Camera, 1000, 0)
-        Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Player)
+        Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Shield)
         Health_Bar.attachToSprite(PlayerShip, 1, 0)
         Health_Bar2 = statusbars.create(10, 2, StatusBarKind.Health)
         Health_Bar2.attachToSprite(PlayerShip2, 1, 0)
@@ -1045,7 +1062,15 @@ if (Game_Mode > 1) {
     Earth = sprites.create(assets.image`Earth`, SpriteKind.Planet)
     Earth.z = -2
     Earth.y = 150
-    scene.setTile(9, assets.image`Light Blue`, true)
+    Mars = sprites.create(assets.image`Mars`, SpriteKind.Planet)
+    Mars.z = -2
+    Mars.setPosition(randint(-1000, 1000), randint(-1000, 1000))
+    Earth_Pointer = sprites.create(assets.image`Earth Pointer`, SpriteKind.Marker)
+    Earth_Pointer.setStayInScreen(true)
+    Earth_Pointer.z = 1000
+    Mars_Pointer = sprites.create(assets.image`Mars Pointer`, SpriteKind.Marker)
+    Mars_Pointer.setStayInScreen(true)
+    Mars_Pointer.z = 1000
     if (Players > 1) {
         PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
         PlayerShip2.setStayInScreen(true)
@@ -1082,15 +1107,6 @@ forever(function () {
     }
 })
 forever(function () {
-    if (Math.abs(PlayerShip.x - Alien.x) > 600 || Math.abs(PlayerShip.y - Alien.y) > 600) {
-        Alien.follow(PlayerShip, 0)
-        Alien.setPosition(PlayerShip.x + randint(-300, -150), PlayerShip.y + randint(-300, -150))
-        Alien_Health.value = 100
-        pause(5000)
-        Alien.follow(PlayerShip, 50)
-    }
-})
-forever(function () {
     if (controller.left.isPressed()) {
         PlayerShip.vx += -5
         music.thump.play()
@@ -1113,6 +1129,15 @@ forever(function () {
     }
 })
 forever(function () {
+    if (Math.abs(PlayerShip.x - Alien.x) > 600 || Math.abs(PlayerShip.y - Alien.y) > 600) {
+        Alien.follow(PlayerShip, 0)
+        Alien.setPosition(PlayerShip.x + randint(-300, -150), PlayerShip.y + randint(-300, -150))
+        Alien_Health.value = 100
+        pause(5000)
+        Alien.follow(PlayerShip, 50)
+    }
+})
+forever(function () {
     if (Game_Mode != 2) {
         pause(randint(20000, 30000))
         Asteroid = sprites.createProjectileFromSide(assets.image`Asteroid`, randint(-10, 10), randint(-10, 10))
@@ -1127,6 +1152,11 @@ forever(function () {
     }
 })
 forever(function () {
+    if (Game_Mode != 2) {
+        Health_Bar.value = info.life() * 10
+    }
+})
+forever(function () {
     if (info.life() > 10 && Players == 1) {
         Shield.setPosition(PlayerShip.x, PlayerShip.y)
         Shield_Bar.attachToSprite(PlayerShip, 3, 6)
@@ -1137,14 +1167,10 @@ forever(function () {
     }
 })
 forever(function () {
-    if (Game_Mode != 2) {
-        Health_Bar.value = info.life() * 10
-    }
-})
-forever(function () {
     Earth_Distance = Math.sqrt((Earth.x - PlayerShip.x) ** 2 + (Earth.y - PlayerShip.y) ** 2)
-    PlayerShip.ax = 500000 * (Earth.x - PlayerShip.x) / Earth_Distance ** 3 * Landed
-    PlayerShip.ay = 500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 * Landed
+    Mars_Distance = Math.sqrt((Mars.x - PlayerShip.x) ** 2 + (Mars.y - PlayerShip.y) ** 2)
+    PlayerShip.ax = (500000 * (Earth.x - PlayerShip.x) / Earth_Distance ** 3 + 190000 * (Mars.x - PlayerShip.x) / Mars_Distance ** 3) * Landed
+    PlayerShip.ay = (500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 + 190000 * (Mars.y - PlayerShip.y) / Mars_Distance ** 3) * Landed
 })
 forever(function () {
     if (info.life() > 10 && Players == 2) {
@@ -1157,6 +1183,14 @@ forever(function () {
         Shield_Bar.attachToSprite(Camera, 100000, 0)
     } else {
     	
+    }
+})
+forever(function () {
+    if (Players == 2) {
+        Earth_Distance2 = Math.sqrt((Earth.x - PlayerShip2.x) ** 2 + (Earth.y - PlayerShip2.y) ** 2)
+        Mars_Distance2 = Math.sqrt((Mars.x - PlayerShip2.x) ** 2 + (Mars.y - PlayerShip2.y) ** 2)
+        PlayerShip2.ax = (500000 * (Earth.x - PlayerShip2.x) / Earth_Distance2 ** 3 + 190000 * (Mars.x - PlayerShip2.x) / Mars_Distance2 ** 3) * Landed2
+        PlayerShip2.ay = (500000 * (Earth.y - PlayerShip2.y) / Earth_Distance2 ** 3 + 190000 * (Mars.y - PlayerShip2.y) / Mars_Distance2 ** 3) * Landed2
     }
 })
 forever(function () {
@@ -1179,13 +1213,6 @@ forever(function () {
         PlayerShip2.vy += 5
         music.thump.play()
         PlayerShip2.startEffect(effects.fire, 100)
-    }
-})
-forever(function () {
-    if (Players == 2) {
-        Earth_Distance2 = Math.sqrt((Earth.x - PlayerShip2.x) ** 2 + (Earth.y - PlayerShip2.y) ** 2)
-        PlayerShip2.ax = 500000 * (Earth.x - PlayerShip2.x) / Earth_Distance2 ** 3 * Landed2
-        PlayerShip2.ay = 500000 * (Earth.y - PlayerShip2.y) / Earth_Distance2 ** 3 * Landed2
     }
 })
 forever(function () {
@@ -1328,12 +1355,12 @@ forever(function () {
     }
 })
 forever(function () {
-    if (Earth_Distance > 46) {
+    if (Mars_Distance > 20 && Earth_Distance > 46) {
         Landed = 1
     }
 })
 forever(function () {
-    if (Earth_Distance2 > 46) {
+    if (Earth_Distance2 > 46 && Mars_Distance2 > 20) {
         Landed2 = 1
     }
 })
@@ -1512,4 +1539,8 @@ forever(function () {
             Torpedo_Y_Velocity2 = 0
         }
     }
+})
+forever(function () {
+    Earth_Pointer.setPosition(Earth.x, Earth.y)
+    Mars_Pointer.setPosition(Mars.x, Mars.y)
 })
