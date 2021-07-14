@@ -6,6 +6,7 @@ namespace SpriteKind {
     export const Planet = SpriteKind.create()
     export const Torpedo = SpriteKind.create()
     export const Camera = SpriteKind.create()
+    export const Shield = SpriteKind.create()
 }
 namespace StatusBarKind {
     export const AsteroidFuel = StatusBarKind.create()
@@ -790,7 +791,7 @@ statusbars.onZero(StatusBarKind.AsteroidFuel, function (status) {
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Planet, function (sprite, otherSprite) {
     Fuel_Bar.value += 0.015
-    sprite.setVelocity(0, 0)
+    sprite.setVelocity(sprite.vx / 1.2, sprite.vy / 1.2)
     if (PlayerShip.overlapsWith(otherSprite)) {
         Landed = -0.5
     } else {
@@ -858,7 +859,7 @@ let PlayerShip: Sprite = null
 let Difficulty = 0
 let Game_Mode = 0
 let Players = 0
-game.splash("Use Arrow Keys and Space")
+game.splash("Use Arrow Keys and Space to Type", "(Press Space to continue)")
 music.baDing.play()
 for (let index = 0; index < 100; index++) {
     if (Players > 2 || Players < 1) {
@@ -890,8 +891,8 @@ if (Game_Mode > 1) {
     if (Players > 1) {
         game.splash("Player 2, use UIOJKL.")
     }
-    PlayerShip = sprites.create(assets.image`SpaceShip Sprite`, SpriteKind.Player)
     scene.setBackgroundImage(assets.image`PVP background`)
+    PlayerShip = sprites.create(assets.image`SpaceShip Sprite`, SpriteKind.Player)
     PlayerShip.setStayInScreen(true)
     PlayerShip.setBounceOnWall(true)
     Fuel = sprites.create(assets.image`Fuel`, SpriteKind.Food)
@@ -988,8 +989,8 @@ if (Game_Mode > 1) {
     }
     for (let index = 0; index < 50; index++) {
         if (Difficulty >= 25) {
-            Difficulty = game.askForNumber("Try below 25", 2)
-            if (Difficulty >= 25) {
+            Difficulty = 0
+            if (Difficulty >= game.askForNumber("Try below 25", 2)) {
                 music.buzzer.play()
             } else {
                 music.baDing.play()
@@ -1030,14 +1031,14 @@ if (Game_Mode > 1) {
     Alien = sprites.create(assets.image`Alien up`, SpriteKind.Enemy)
     Alien.setPosition(-100, 100)
     Alien.z = 1
-    Alien.follow(PlayerShip, PlayerShip.vx + PlayerShip.vy - 20)
+    Alien.follow(PlayerShip, 54 - 2 * Difficulty)
     Alien_Health = statusbars.create(10, 2, StatusBarKind.Health)
     Alien_Health.attachToSprite(Alien, 4, 0)
     Alien_Health.setLabel("HP")
     Alien_Label = statusbars.create(0, 0, StatusBarKind.Health)
     Alien_Label.attachToSprite(Alien, 10, 0)
     Alien_Label.setLabel("Alien")
-    Shield = sprites.create(assets.image`Shield`, SpriteKind.Player)
+    Shield = sprites.create(assets.image`Shield`, SpriteKind.Shield)
     Shield_Bar = statusbars.create(10, 2, StatusBarKind.Health)
     Shield_Bar.max = 10
     Shield_Bar.setColor(9, 0)
@@ -1068,7 +1069,7 @@ if (Game_Mode > 1) {
             . . . . . . . . . . . . . . . . 
             `, SpriteKind.Camera)
         Fuel_Bar.attachToSprite(Camera, 43, 0)
-        Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Player)
+        Shield2 = sprites.create(assets.image`Shield`, SpriteKind.Shield)
         Health_Bar.attachToSprite(Camera, 37, 0)
         Health_Bar.setBarSize(20, 4)
         Shield_Bar.setBarSize(20, 4)
@@ -1141,6 +1142,11 @@ forever(function () {
     }
 })
 forever(function () {
+    Earth_Distance = Math.sqrt((Earth.x - PlayerShip.x) ** 2 + (Earth.y - PlayerShip.y) ** 2)
+    PlayerShip.ax = 500000 * (Earth.x - PlayerShip.x) / Earth_Distance ** 3 * Landed
+    PlayerShip.ay = 500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 * Landed
+})
+forever(function () {
     if (info.life() > 10 && Players == 2) {
         Shield.setPosition(PlayerShip.x, PlayerShip.y)
         Shield2.setPosition(PlayerShip2.x, PlayerShip2.y)
@@ -1174,11 +1180,6 @@ forever(function () {
         music.thump.play()
         PlayerShip2.startEffect(effects.fire, 100)
     }
-})
-forever(function () {
-    Earth_Distance = Math.sqrt((Earth.x - PlayerShip.x) ** 2 + (Earth.y - PlayerShip.y) ** 2)
-    PlayerShip.ax = 500000 * (Earth.x - PlayerShip.x) / Earth_Distance ** 3 * Landed
-    PlayerShip.ay = 500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 * Landed
 })
 forever(function () {
     if (Players == 2) {
@@ -1277,12 +1278,12 @@ forever(function () {
         if (Players > 1) {
             Alien_Follow = randint(1, 2)
             if (Alien_Follow == 1) {
-                Alien.follow(PlayerShip, 50)
+                Alien.follow(PlayerShip, 54 - 2 * Difficulty)
             } else {
-                Alien.follow(PlayerShip2, 50)
+                Alien.follow(PlayerShip2, 54 - 2 * Difficulty)
             }
         } else {
-            Alien.follow(PlayerShip, 50)
+            Alien.follow(PlayerShip, 54 - 2 * Difficulty)
         }
     }
 })
