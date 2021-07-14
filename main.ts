@@ -9,6 +9,7 @@ namespace SpriteKind {
     export const Shield = SpriteKind.create()
     export const Map = SpriteKind.create()
     export const Marker = SpriteKind.create()
+    export const Big_Enemy = SpriteKind.create()
 }
 namespace StatusBarKind {
     export const AsteroidFuel = StatusBarKind.create()
@@ -116,6 +117,8 @@ controller.combos.attachCombo("" + controller.combos.idToString(controller.combo
     Asteroid_Bar.attachToSprite(Asteroid, 0, 0)
     Asteroid_Bar.setColor(5, 0)
     Asteroid_Bar.setLabel("Fuel")
+    Summon_Big = 1
+    PlayerShip.setFlag(SpriteFlag.ShowPhysics, true)
 })
 controller.player2.onButtonEvent(ControllerButton.Down, ControllerButtonEvent.Pressed, function () {
     if (Players == 2) {
@@ -595,6 +598,7 @@ controller.combos.attachCombo("" + controller.combos.idToString(controller.combo
     info.setLife(10)
     PlayerShip.setFlag(SpriteFlag.Ghost, false)
     PlayerShip.say("Test Mode(s) Off", 5000)
+    PlayerShip.setFlag(SpriteFlag.ShowPhysics, false)
 })
 sprites.onOverlap(SpriteKind.Food, SpriteKind.Planet, function (sprite, otherSprite) {
     Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
@@ -804,10 +808,12 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Planet, function (sprite, otherS
     } else {
         Landed = 1
     }
-    if (PlayerShip2.overlapsWith(otherSprite)) {
-        Landed2 = -0.5
-    } else {
-        Landed2 = 1
+    if (Players == 2) {
+        if (PlayerShip2.overlapsWith(otherSprite)) {
+            Landed2 = -0.5
+        } else {
+            Landed2 = 1
+        }
     }
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food2, function (sprite, otherSprite) {
@@ -848,20 +854,22 @@ let Mars_Distance2 = 0
 let Earth_Distance2 = 0
 let Mars_Distance = 0
 let Earth_Distance = 0
+let Big_Alien: Sprite = null
 let Landed2 = 0
 let Landed = 0
 let Ship_Direction2 = 0
+let Summon_Big = 0
 let Asteroid_Bar: StatusBarSprite = null
 let Asteroid: Sprite = null
 let Explosion: Sprite = null
 let Ship_Direction = 0
 let Mars_Pointer: Sprite = null
 let Earth_Pointer: Sprite = null
-let Mars: Sprite = null
 let Health_Bar2: StatusBarSprite = null
 let Shield2: Sprite = null
 let Camera: Sprite = null
 let PlayerShip2: Sprite = null
+let Mars: Sprite = null
 let Earth: Sprite = null
 let Shield_Bar: StatusBarSprite = null
 let Shield: Sprite = null
@@ -943,6 +951,8 @@ if (Game_Mode > 1) {
     Earth = sprites.create(assets.image`Earth`, SpriteKind.Planet)
     Earth.z = -2
     Earth.y = 1000000
+    Mars = sprites.create(assets.image`Mars`, SpriteKind.Planet)
+    Mars.setPosition(999999999, 999999999)
     scene.setTile(9, assets.image`Light Blue`, true)
     if (Players > 1) {
         PlayerShip2 = sprites.create(assets.image`SpaceShip Sprite2`, SpriteKind.Player)
@@ -1100,6 +1110,13 @@ if (Game_Mode > 1) {
         Shield_Bar.setBarSize(20, 4)
     }
 }
+forever(function () {
+    if (info.score() >= 10000 || 0 >= 1) {
+        Big_Alien = sprites.create(assets.image`Big Alien`, SpriteKind.Big_Enemy)
+        Big_Alien.setPosition(PlayerShip.x + 200, PlayerShip.y - 200)
+        Big_Alien.follow(PlayerShip, 20)
+    }
+})
 forever(function () {
     if (Players > 1 && Game_Mode != 2) {
         scene.centerCameraAt((PlayerShip.x + PlayerShip2.x) / 2, (PlayerShip.y + PlayerShip2.y) / 2)
@@ -1386,6 +1403,12 @@ forever(function () {
     }
 })
 forever(function () {
+    if (Game_Mode != 2) {
+        Fuel_Bar.value += -0.05
+        pause(100)
+    }
+})
+forever(function () {
     while (controller.anyButton.isPressed()) {
         Fuel_Bar.value += -0.1
         pause(100)
@@ -1453,12 +1476,6 @@ forever(function () {
                 pause(1000)
             }
         }
-    }
-})
-forever(function () {
-    if (Game_Mode != 2) {
-        Fuel_Bar.value += -0.05
-        pause(100)
     }
 })
 forever(function () {
@@ -1541,6 +1558,8 @@ forever(function () {
     }
 })
 forever(function () {
-    Earth_Pointer.setPosition(Earth.x, Earth.y)
-    Mars_Pointer.setPosition(Mars.x, Mars.y)
+    if (Game_Mode < 2) {
+        Earth_Pointer.setPosition(Earth.x, Earth.y)
+        Mars_Pointer.setPosition(Mars.x, Mars.y)
+    }
 })

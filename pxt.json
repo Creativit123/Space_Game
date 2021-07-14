@@ -9,8 +9,7 @@
         "color-coded-tilemap": "*",
         "darts": "*",
         "arcade-minimap": "github:microsoft/arcade-minimap#v0.6.1",
-        "keyboard": "*",
-        "controller": "*"
+        "keyboard": "*"
     },
     "files": [
         "main.blocks",
