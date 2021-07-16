@@ -616,7 +616,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Asteroid, function (sprite, othe
 })
 controller.combos.attachCombo("" + controller.combos.idToString(controller.combos.ID.A) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.up) + controller.combos.idToString(controller.combos.ID.up), function () {
     Fuel_Bar.max = 60
-    Fuel_Bar.value = 20
+    Fuel_Bar.value = 30
     info.setLife(10)
     PlayerShip.setFlag(SpriteFlag.Ghost, false)
     PlayerShip.say("Test Mode(s) Off", 5000)
@@ -1351,6 +1351,12 @@ forever(function () {
             7 7 
             `, SpriteKind.Marker)
         Big_Alien_Pointer.setStayInScreen(true)
+        music.spooky.playUntilDone()
+    }
+})
+forever(function () {
+    if (Big_Summoned == 1) {
+        music.spooky.playUntilDone()
     }
 })
 forever(function () {
