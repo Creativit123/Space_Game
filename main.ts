@@ -10,6 +10,7 @@ namespace SpriteKind {
     export const Map = SpriteKind.create()
     export const Marker = SpriteKind.create()
     export const Big_Enemy = SpriteKind.create()
+    export const Enemy_Torpedo = SpriteKind.create()
 }
 namespace StatusBarKind {
     export const AsteroidFuel = StatusBarKind.create()
@@ -117,8 +118,14 @@ controller.combos.attachCombo("" + controller.combos.idToString(controller.combo
     Asteroid_Bar.attachToSprite(Asteroid, 0, 0)
     Asteroid_Bar.setColor(5, 0)
     Asteroid_Bar.setLabel("Fuel")
-    Summon_Big = 1
+    info.setScore(10000)
     PlayerShip.setFlag(SpriteFlag.ShowPhysics, true)
+})
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy_Torpedo, function (sprite, otherSprite) {
+    music.bigCrash.play()
+    music.zapped.play()
+    sprite.destroy()
+    otherSprite.destroy()
 })
 controller.player2.onButtonEvent(ControllerButton.Down, ControllerButtonEvent.Pressed, function () {
     if (Players == 2) {
@@ -126,9 +133,19 @@ controller.player2.onButtonEvent(ControllerButton.Down, ControllerButtonEvent.Pr
         Ship_Direction2 = 2
     }
 })
+sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Big_Enemy, function (sprite, otherSprite) {
+    Big_Alien_HP.value += -12
+    sprite.destroy(effects.fire, 100)
+    music.smallCrash.play()
+})
 controller.combos.attachCombo("" + controller.combos.idToString(controller.combos.ID.up) + controller.combos.idToString(controller.combos.ID.up) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.down) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.left) + controller.combos.idToString(controller.combos.ID.right) + controller.combos.idToString(controller.combos.ID.B), function () {
     PlayerShip.setFlag(SpriteFlag.GhostThroughSprites, true)
     PlayerShip.say("Test Mode 2 On", 5000)
+})
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Big_Enemy, function (sprite, otherSprite) {
+    Big_Alien_HP.value += -5
+    sprite.destroy()
+    music.zapped.playUntilDone()
 })
 controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
     PlayerShip.setImage(assets.image`SpaceShip Left`)
@@ -215,6 +232,11 @@ sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Asteroid, function (sprite, 
     )
     sprite.destroy()
     otherSprite.destroy()
+})
+sprites.onCreated(SpriteKind.Enemy_Torpedo, function (sprite) {
+    if (sprite.vx == 0 && sprite.vy == 0) {
+        sprite.destroy()
+    }
 })
 sprites.onOverlap(SpriteKind.Food2, SpriteKind.Planet, function (sprite, otherSprite) {
     Fuel2.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
@@ -695,6 +717,12 @@ sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Food, function (sprite, otherSp
     sprite.destroy()
     Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
 })
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy_Torpedo, function (sprite, otherSprite) {
+    music.bigCrash.play()
+    music.zapped.play()
+    info.changeLifeBy(-4)
+    otherSprite.destroy()
+})
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
     Fuel.setPosition(PlayerShip.x + randint(-65, 65), PlayerShip.y + randint(-45, 45))
     music.baDing.playUntilDone()
@@ -704,6 +732,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSpr
 sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Enemy, function (sprite, otherSprite) {
     Alien_Health.value += -1000
     sprite.destroy(effects.fire, 100)
+    music.smallCrash.play()
 })
 sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Asteroid, function (sprite, otherSprite) {
     music.bigCrash.playUntilDone()
@@ -787,6 +816,27 @@ sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Asteroid, function (sprite, oth
     sprite.destroy()
     otherSprite.destroy()
 })
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Big_Enemy, function (sprite, otherSprite) {
+    sprite.setVelocity(0, 0)
+    if (PlayerShip.overlapsWith(otherSprite)) {
+        Landed = -0.5
+    } else {
+        Landed = 1
+    }
+    if (Players == 2) {
+        if (PlayerShip2.overlapsWith(otherSprite)) {
+            Landed2 = -0.5
+        } else {
+            Landed2 = 1
+        }
+    }
+    pause(200)
+    if (sprite.overlapsWith(otherSprite)) {
+        info.changeLifeBy(-1)
+        Fuel_Bar.value += -2
+        music.bigCrash.play()
+    }
+})
 sprites.onOverlap(SpriteKind.Enemy, SpriteKind.Asteroid, function (sprite, otherSprite) {
     Alien.setPosition(otherSprite.x, otherSprite.y)
     Asteroid_Bar.value += -0.25
@@ -843,22 +893,28 @@ let Torpedo_Y_Velocity = 0
 let Torpedo_X_Velocity = 0
 let Torpedo_Y_Acceleration = 0
 let Torpedo_X_Acceleration = 0
-let Torpedo: Sprite = null
 let projectile_y_velocity2 = 0
 let projectile_x_velocity2 = 0
 let projectile: Sprite = null
 let projectile_x_velocity = 0
 let projectile_y_velocity = 0
+let Big_Alien_Pointer: Sprite = null
+let Big_Alien_Label: StatusBarSprite = null
 let Alien_Follow = 0
+let Alien_Torp_Direc = 0
+let Torpedo: Sprite = null
+let Alien_Distance2 = 0
 let Mars_Distance2 = 0
 let Earth_Distance2 = 0
+let Big_Alien: Sprite = null
+let Alien_Distance = 0
+let Big_Summoned = 0
 let Mars_Distance = 0
 let Earth_Distance = 0
-let Big_Alien: Sprite = null
 let Landed2 = 0
 let Landed = 0
+let Big_Alien_HP: StatusBarSprite = null
 let Ship_Direction2 = 0
-let Summon_Big = 0
 let Asteroid_Bar: StatusBarSprite = null
 let Asteroid: Sprite = null
 let Explosion: Sprite = null
@@ -1111,10 +1167,190 @@ if (Game_Mode > 1) {
     }
 }
 forever(function () {
-    if (info.score() >= 10000 || 0 >= 1) {
+    Earth_Distance = Math.sqrt((Earth.x - PlayerShip.x) ** 2 + (Earth.y - PlayerShip.y) ** 2)
+    Mars_Distance = Math.sqrt((Mars.x - PlayerShip.x) ** 2 + (Mars.y - PlayerShip.y) ** 2)
+    PlayerShip.ax = (500000 * (Earth.x - PlayerShip.x) / Earth_Distance ** 3 + 190000 * (Mars.x - PlayerShip.x) / Mars_Distance ** 3) * Landed
+    PlayerShip.ay = (500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 + 190000 * (Mars.y - PlayerShip.y) / Mars_Distance ** 3) * Landed
+    if (Big_Summoned == 1) {
+        Alien_Distance = Math.sqrt((Big_Alien.x - PlayerShip.x) ** 2 + (Big_Alien.y - PlayerShip.y) ** 2)
+        PlayerShip.ax += 190000 * (Big_Alien.x - PlayerShip.x) / Alien_Distance ** 3
+        PlayerShip.ay += 190000 * (Big_Alien.y - PlayerShip.y) / Alien_Distance ** 3
+    }
+    if (Players == 2) {
+        Earth_Distance2 = Math.sqrt((Earth.x - PlayerShip2.x) ** 2 + (Earth.y - PlayerShip2.y) ** 2)
+        Mars_Distance2 = Math.sqrt((Mars.x - PlayerShip2.x) ** 2 + (Mars.y - PlayerShip2.y) ** 2)
+        PlayerShip2.ax = (500000 * (Earth.x - PlayerShip2.x) / Earth_Distance2 ** 3 + 190000 * (Mars.x - PlayerShip2.x) / Mars_Distance2 ** 3) * Landed2
+        PlayerShip2.ay = (500000 * (Earth.y - PlayerShip2.y) / Earth_Distance2 ** 3 + 190000 * (Mars.y - PlayerShip2.y) / Mars_Distance2 ** 3) * Landed2
+        if (Big_Summoned == 1) {
+            Alien_Distance2 = Math.sqrt((Big_Alien.x - PlayerShip2.x) ** 2 + (Big_Alien.y - PlayerShip2.y) ** 2)
+            PlayerShip.ax += 190000 * (Big_Alien.x - PlayerShip2.x) / Alien_Distance2 ** 3
+            PlayerShip.ay += 190000 * (Big_Alien.y - PlayerShip2.y) / Alien_Distance2 ** 3
+        }
+    }
+})
+forever(function () {
+    if (Big_Summoned == 1) {
+        pause(500)
+        Torpedo = sprites.createProjectileFromSprite(assets.image`Torpedo Up`, Big_Alien, Big_Alien.vx * 4, Big_Alien.vy * 4)
+        Torpedo.ax = Big_Alien.vx * 4
+        Torpedo.ay = Big_Alien.vy * 4
+        Torpedo.setFlag(SpriteFlag.AutoDestroy, false)
+        Torpedo.lifespan = 10000
+        Torpedo.setKind(SpriteKind.Enemy_Torpedo)
+        Torpedo.startEffect(effects.fire, 10000)
+        if (Math.abs(Torpedo.vy) > Math.abs(Torpedo.vx) && Torpedo.vy < 0) {
+            Alien_Torp_Direc = 0
+        } else if (Math.abs(Torpedo.vx) > Math.abs(Torpedo.vy) && Torpedo.vx > 0) {
+            Alien_Torp_Direc = 1
+        } else if (Math.abs(Torpedo.vy) > Math.abs(Torpedo.vx) && Torpedo.vy > 0) {
+            Alien_Torp_Direc = 2
+        } else {
+            Alien_Torp_Direc = 3
+        }
+        if (Alien_Torp_Direc == 0) {
+            Torpedo.setImage(assets.image`Torpedo Up`)
+        } else if (Alien_Torp_Direc == 2) {
+            Torpedo.setImage(assets.image`Torpedo Down`)
+        } else if (Alien_Torp_Direc == 1) {
+            Torpedo.setImage(assets.image`Torpedo Right`)
+        } else {
+            Torpedo.setImage(assets.image`Torpedo Left`)
+        }
+    }
+})
+forever(function () {
+    if (Big_Summoned == 1 && (Math.abs(PlayerShip.x - Big_Alien.x) > 600 || Math.abs(PlayerShip.y - Big_Alien.y) > 600)) {
+        Alien.setPosition(PlayerShip.x + randint(-300, 300), PlayerShip.y + randint(-300, -150))
+        Big_Alien_HP.value = 100
+    }
+})
+forever(function () {
+    if (Big_Summoned == 1 && Big_Alien_HP.value == 0) {
+        Big_Alien.follow(PlayerShip, 0)
+        music.bigCrash.play()
+        Explosion = sprites.createProjectileFromSprite(img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . 4 4 . . . . . . . 
+            . . . . . . 4 5 5 4 . . . . . . 
+            . . . . . . 2 5 5 2 . . . . . . 
+            . . . . . . . 2 2 . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `, Big_Alien, 0, 0)
+        Explosion.lifespan = 800
+        Explosion.z = 100
+        Fuel_Bar.value += Math.constrain(50 + (Difficulty - info.score() / 5000), 0.1, 1000)
+        animation.runImageAnimation(
+        Explosion,
+        [img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . 4 4 . . . . . . . 
+            . . . . . . 4 5 5 4 . . . . . . 
+            . . . . . . 2 5 5 2 . . . . . . 
+            . . . . . . . 2 2 . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `,img`
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . 4 . . . . . 
+            . . . . 2 . . . . 4 4 . . . . . 
+            . . . . 2 4 . . 4 5 4 . . . . . 
+            . . . . . 2 4 d 5 5 4 . . . . . 
+            . . . . . 2 5 5 5 5 4 . . . . . 
+            . . . . . . 2 5 5 5 5 4 . . . . 
+            . . . . . . 2 5 4 2 4 4 . . . . 
+            . . . . . . 4 4 . . 2 4 4 . . . 
+            . . . . . 4 4 . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            . . . . . . . . . . . . . . . . 
+            `,img`
+            . 3 . . . . . . . . . . . 4 . . 
+            . 3 3 . . . . . . . . . 4 4 . . 
+            . 3 d 3 . . 4 4 . . 4 4 d 4 . . 
+            . . 3 5 3 4 5 5 4 4 d d 4 4 . . 
+            . . 3 d 5 d 1 1 d 5 5 d 4 4 . . 
+            . . 4 5 5 1 1 1 1 5 1 1 5 4 . . 
+            . 4 5 5 5 5 1 1 5 1 1 1 d 4 4 . 
+            . 4 d 5 1 1 5 5 5 1 1 1 5 5 4 . 
+            . 4 4 5 1 1 5 5 5 5 5 d 5 5 4 . 
+            . . 4 3 d 5 5 5 d 5 5 d d d 4 . 
+            . 4 5 5 d 5 5 5 d d d 5 5 4 . . 
+            . 4 5 5 d 3 5 d d 3 d 5 5 4 . . 
+            . 4 4 d d 4 d d d 4 3 d d 4 . . 
+            . . 4 5 4 4 4 4 4 4 4 4 4 . . . 
+            . 4 5 4 . . 4 4 4 . . . 4 4 . . 
+            . 4 4 . . . . . . . . . . 4 4 . 
+            `],
+        200,
+        false
+        )
+        pause(600)
+        Big_Alien.setPosition(PlayerShip.x + randint(-300, 300), PlayerShip.y + randint(-300, -150))
+        info.changeLifeBy(2)
+        Big_Alien_HP.value = 100
+        info.changeScoreBy(200)
+        pause(5000)
+        if (Players > 1) {
+            Alien_Follow = randint(1, 2)
+            if (Alien_Follow == 1) {
+                Big_Alien.follow(PlayerShip, 10)
+            } else {
+                Big_Alien.follow(PlayerShip2, 10)
+            }
+        } else {
+            Big_Alien.follow(PlayerShip, 10)
+        }
+    }
+})
+forever(function () {
+    if (info.score() >= 10000 && Big_Summoned == 0) {
         Big_Alien = sprites.create(assets.image`Big Alien`, SpriteKind.Big_Enemy)
         Big_Alien.setPosition(PlayerShip.x + 200, PlayerShip.y - 200)
-        Big_Alien.follow(PlayerShip, 20)
+        Big_Alien.follow(PlayerShip, 10)
+        Big_Summoned = 1
+        Big_Alien_HP = statusbars.create(20, 4, StatusBarKind.Health)
+        Big_Alien_HP.attachToSprite(Big_Alien, 2, 0)
+        Big_Alien_Label = statusbars.create(0, 0, StatusBarKind.Health)
+        Big_Alien_Label.attachToSprite(Big_Alien, 7, 0)
+        Big_Alien_Label.setLabel("Alien Mothership")
+        Big_Alien_Pointer = sprites.create(img`
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            . . 
+            7 7 
+            7 7 
+            `, SpriteKind.Marker)
+        Big_Alien_Pointer.setStayInScreen(true)
     }
 })
 forever(function () {
@@ -1169,11 +1405,6 @@ forever(function () {
     }
 })
 forever(function () {
-    if (Game_Mode != 2) {
-        Health_Bar.value = info.life() * 10
-    }
-})
-forever(function () {
     if (info.life() > 10 && Players == 1) {
         Shield.setPosition(PlayerShip.x, PlayerShip.y)
         Shield_Bar.attachToSprite(PlayerShip, 3, 6)
@@ -1184,10 +1415,9 @@ forever(function () {
     }
 })
 forever(function () {
-    Earth_Distance = Math.sqrt((Earth.x - PlayerShip.x) ** 2 + (Earth.y - PlayerShip.y) ** 2)
-    Mars_Distance = Math.sqrt((Mars.x - PlayerShip.x) ** 2 + (Mars.y - PlayerShip.y) ** 2)
-    PlayerShip.ax = (500000 * (Earth.x - PlayerShip.x) / Earth_Distance ** 3 + 190000 * (Mars.x - PlayerShip.x) / Mars_Distance ** 3) * Landed
-    PlayerShip.ay = (500000 * (Earth.y - PlayerShip.y) / Earth_Distance ** 3 + 190000 * (Mars.y - PlayerShip.y) / Mars_Distance ** 3) * Landed
+    if (Game_Mode != 2) {
+        Health_Bar.value = info.life() * 10
+    }
 })
 forever(function () {
     if (info.life() > 10 && Players == 2) {
@@ -1200,14 +1430,6 @@ forever(function () {
         Shield_Bar.attachToSprite(Camera, 100000, 0)
     } else {
     	
-    }
-})
-forever(function () {
-    if (Players == 2) {
-        Earth_Distance2 = Math.sqrt((Earth.x - PlayerShip2.x) ** 2 + (Earth.y - PlayerShip2.y) ** 2)
-        Mars_Distance2 = Math.sqrt((Mars.x - PlayerShip2.x) ** 2 + (Mars.y - PlayerShip2.y) ** 2)
-        PlayerShip2.ax = (500000 * (Earth.x - PlayerShip2.x) / Earth_Distance2 ** 3 + 190000 * (Mars.x - PlayerShip2.x) / Mars_Distance2 ** 3) * Landed2
-        PlayerShip2.ay = (500000 * (Earth.y - PlayerShip2.y) / Earth_Distance2 ** 3 + 190000 * (Mars.y - PlayerShip2.y) / Mars_Distance2 ** 3) * Landed2
     }
 })
 forever(function () {
@@ -1235,7 +1457,7 @@ forever(function () {
 forever(function () {
     if (Alien_Health.value == 0) {
         Alien.follow(PlayerShip, 0)
-        music.bigCrash.playUntilDone()
+        music.bigCrash.play()
         Explosion = sprites.createProjectileFromSprite(img`
             . . . . . . . . . . . . . . . . 
             . . . . . . . . . . . . . . . . 
@@ -1561,5 +1783,8 @@ forever(function () {
     if (Game_Mode < 2) {
         Earth_Pointer.setPosition(Earth.x, Earth.y)
         Mars_Pointer.setPosition(Mars.x, Mars.y)
+        if (Big_Summoned == 1) {
+            Big_Alien_Pointer.setPosition(Big_Alien.x, Big_Alien.y)
+        }
     }
 })

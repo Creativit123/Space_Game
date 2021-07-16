@@ -1,5 +1,5 @@
 {
-    "name": "Reverse Asteroids",
+    "name": "Space Game",
     "description": "",
     "dependencies": {
         "device": "*",
