@@ -720,7 +720,7 @@ sprites.onOverlap(SpriteKind.Torpedo, SpriteKind.Food, function (sprite, otherSp
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy_Torpedo, function (sprite, otherSprite) {
     music.bigCrash.play()
     music.zapped.play()
-    info.changeLifeBy(-4)
+    info.changeLifeBy(-2)
     otherSprite.destroy()
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Food, function (sprite, otherSprite) {
@@ -1190,7 +1190,7 @@ forever(function () {
 })
 forever(function () {
     if (Big_Summoned == 1) {
-        pause(500)
+        pause(750)
         Torpedo = sprites.createProjectileFromSprite(assets.image`Torpedo Up`, Big_Alien, Big_Alien.vx * 4, Big_Alien.vy * 4)
         Torpedo.ax = Big_Alien.vx * 4
         Torpedo.ay = Big_Alien.vy * 4
